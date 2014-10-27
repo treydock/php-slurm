@@ -192,7 +192,7 @@ static void _parse_node_pointer(zval *sub_arr, node_info_t *node_arr)
 	}
 
 	_zend_add_valid_assoc_string(sub_arr, "GRES", node_arr->gres);
-	add_assoc_long(sub_arr, "State", node_arr->node_state);
+	_zend_add_valid_assoc_string(sub_arr, "State", slurm_node_state_string(node_arr->node_state));
 	_zend_add_valid_assoc_string(sub_arr, "OS", node_arr->os);
 	add_assoc_long(sub_arr, "Real Mem", node_arr->real_memory);
 
@@ -215,6 +215,11 @@ static void _parse_node_pointer(zval *sub_arr, node_info_t *node_arr)
 	add_assoc_long(sub_arr, "#Threads/Core", node_arr->threads);
 	add_assoc_long(sub_arr, "TmpDisk", node_arr->tmp_disk);
 	add_assoc_long(sub_arr, "Weight", node_arr->weight);
+	if (node_arr->cpu_load == NO_VAL) {
+		add_assoc_null(sub_arr, "CPU Load");
+	} else {
+		add_assoc_double(sub_arr, "CPU Load", (node_arr->cpu_load / 100.0));
+	}
 }
 
 

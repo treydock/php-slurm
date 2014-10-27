@@ -58,6 +58,7 @@
 #include <stdlib.h>
 
 extern zend_module_entry slurm_php_module_entry;
+extern char *slurm_node_state_string(uint32_t inx);
 
 /*****************************************************************************\
  *	TYPEDEFS
@@ -84,7 +85,6 @@ char *slurm_xstrdup(const char *str);
 */
 char *slurm_xstrdup_printf(const char *fmt, ...)
   __attribute__ ((format (printf, 1, 2)));
-
 
 /*****************************************************************************\
  *	SLURM PHP HOSTLIST FUNCTIONS

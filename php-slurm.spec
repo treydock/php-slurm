@@ -1,6 +1,6 @@
 Name:           php-slurm
-Version:        1.0.2.1
-Release:        6%{?dist}
+Version:        1.0.2.3
+Release:        1%{?dist}
 Summary:        PHP extension for SLURM
 
 Group:          System
