@@ -132,6 +132,13 @@ static void _parse_assoc_array(char *char_arr, char *delims, zval *result_arr);
 static void _parse_array(char *char_arr, char *delims, zval *rslt_arr);
 
 /*
+ * _parse_tres_str - Parse TRES string
+ * IN tres_str - character array that needs parsing
+ * IN result_arr - associative array used to store the key/value pairs
+ */
+static void _parse_tres_str(char *tres_str, zval *result_arr);
+
+/*
  * _zend_add_valid_assoc_string - checks a character array to see if
  *	it's NULL or not, if so an associative null is added, if not
  *	an associative string is added.
@@ -226,8 +233,8 @@ static void _parse_node_pointer(zval *sub_arr, node_info_t *node_arr)
 
 static void _parse_assoc_array(char *char_arr, char *delims, zval *result_arr)
 {
+	zval *tres_arr = NULL;
 	char *rslt = NULL;
-	char *sub_rslt = NULL;
 	char *tmp = NULL;
 	int i = 0;
 
@@ -236,8 +243,11 @@ static void _parse_assoc_array(char *char_arr, char *delims, zval *result_arr)
 		if (i == 0) {
 			tmp = rslt;
 			if (strcmp(tmp, "TRES") == 0) {
+				ALLOC_INIT_ZVAL(tres_arr);
+				array_init(tres_arr);
 				rslt = strtok(NULL, " ");
-				_zend_add_valid_assoc_string(result_arr, "TRES", rslt);
+				_parse_tres_str(rslt, tres_arr);
+				add_assoc_zval(result_arr, "TRES", tres_arr);
 				i = -1;
 			}
 		} else if (i == 1) {
@@ -271,6 +281,36 @@ static void _parse_array(char *char_arr, char *delims, zval *rslt_arr)
 			add_next_index_string(rslt_arr, tmp, 1);
 		}
 		rslt = strtok(NULL, delims);
+	}
+}
+
+static void _parse_tres_str(char *tres_str, zval *result_arr)
+{
+	const char delim_1[2] = ",";
+	const char delim_2[2] = "=";
+	char *token_1;
+	char *token_1_end;
+	char *token_2;
+	char *tres_key = NULL;
+	int i = 0;
+	
+	token_1 = strtok_r(tres_str, delim_1, &token_1_end);
+	while (token_1 != NULL) {
+		char *token_2_end;
+		token_2 = strtok_r(token_1, delim_2, &token_2_end);
+		while (token_2 != NULL) {
+			if (i == 0) {
+				tres_key = token_2;
+			} else if (i == 1) {
+				_zend_add_valid_assoc_string(result_arr, tres_key, token_2);
+			}
+			i++;
+			if (i == 2) {
+				i = 0;
+			}
+			token_2 = strtok_r(NULL, delim_2, &token_2_end);
+		}
+		token_1 = strtok_r(NULL, delim_1, &token_1_end);
 	}
 }
 
@@ -872,8 +912,6 @@ PHP_FUNCTION(slurm_load_job_information)
 	job_info_msg_t *job_ptr;
 	zval *sub_arr = NULL;
 	char *tmp;
-	//char *tmp_d;
-	//char *tmp_d_k = "DEBUG";
 
 	err = slurm_load_jobs((time_t) NULL, &job_ptr, 0);
 	if (err) {
@@ -887,9 +925,9 @@ PHP_FUNCTION(slurm_load_job_information)
 		_parse_assoc_array(slurm_sprint_job_info(
 					   &job_ptr->job_array[i], 1),
 				   "= ", sub_arr);
-		//tmp_d = slurm_sprint_job_info(&job_ptr->job_array[i], 1);
+		//char *tmp_d = slurm_sprint_job_info(&job_ptr->job_array[i], 1);
+		//_zend_add_valid_assoc_string(sub_arr, "DEBUG", tmp_d);
 		tmp = slurm_xstrdup_printf("%u", job_ptr->job_array[i].job_id);
-		//_zend_add_valid_assoc_string(sub_arr, tmp_d_k, tmp_d);
 		add_assoc_zval(return_value, tmp, sub_arr);
 	}
 

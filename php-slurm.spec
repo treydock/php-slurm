@@ -58,8 +58,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %changelog
 * Thu Jul 02 2015 Trey Dockendorf <treydock@tamu.edu> - 1.0.2.4-1
-Handle TRES when getting job information
-Add slurm_version_str function
+- Handle TRES when getting job information
+- Add slurm_version_str function
 
 * Thu Jul 02 2015 Trey Dockendorf <treydock@tamu.edu> - 1.0.2.3-3
 Build against SLURM 15.08
