@@ -54,6 +54,7 @@ static function_entry slurm_functions[] = {
 	PHP_FE(slurm_get_specific_partition_info, NULL)
 	PHP_FE(slurm_get_partition_node_names, NULL)
 	PHP_FE(slurm_version, NULL)
+	PHP_FE(slurm_version_str, NULL)
 	PHP_FE(slurm_get_node_names, NULL)
 	PHP_FE(slurm_get_node_elements, NULL)
 	PHP_FE(slurm_get_node_element_by_name, NULL)
@@ -226,6 +227,7 @@ static void _parse_node_pointer(zval *sub_arr, node_info_t *node_arr)
 static void _parse_assoc_array(char *char_arr, char *delims, zval *result_arr)
 {
 	char *rslt = NULL;
+	char *sub_rslt = NULL;
 	char *tmp = NULL;
 	int i = 0;
 
@@ -233,6 +235,11 @@ static void _parse_assoc_array(char *char_arr, char *delims, zval *result_arr)
 	while (rslt != NULL) {
 		if (i == 0) {
 			tmp = rslt;
+			if (strcmp(tmp, "TRES") == 0) {
+				rslt = strtok(NULL, " ");
+				_zend_add_valid_assoc_string(result_arr, "TRES", rslt);
+				i = -1;
+			}
 		} else if (i == 1) {
 			if (strcmp(rslt,"(null)")==0) {
 				add_assoc_null(result_arr, tmp);
@@ -353,7 +360,6 @@ PHP_FUNCTION(slurm_slurmd_status)
 	}
 }
 
-
 PHP_FUNCTION(slurm_version)
 {
 	long option = -1;
@@ -383,6 +389,22 @@ PHP_FUNCTION(slurm_version)
 				    SLURM_VERSION_MICRO(SLURM_VERSION_NUMBER));
 		break;
 	}
+}
+
+PHP_FUNCTION(slurm_version_str)
+{
+	int err = SLURM_SUCCESS;
+	slurm_ctl_conf_t  *slurm_ctl_conf_ptr = NULL;
+	char *version = NULL;
+	err = slurm_load_ctl_conf ((time_t) NULL, &slurm_ctl_conf_ptr);
+	if (err) {
+		RETURN_LONG(-1);
+	}
+
+	version = slurm_xstrdup(slurm_ctl_conf_ptr->version);
+	slurm_free_ctl_conf(slurm_ctl_conf_ptr);
+
+	RETURN_STRING(version, 1);
 }
 
 
@@ -545,7 +567,7 @@ PHP_FUNCTION(slurm_get_specific_partition_info)
 PHP_FUNCTION(slurm_get_partition_node_names)
 {
 	char *prt_name = NULL;
-        char *tmp = NULL;
+	char *tmp = NULL;
 	long lngth = 0;
 	int err = SLURM_SUCCESS;
 	partition_info_msg_t *prt_ptr = NULL;
@@ -572,9 +594,8 @@ PHP_FUNCTION(slurm_get_partition_node_names)
 			if (!strcmp(prt_ptr->partition_array->name, prt_name)) {
 				prt_data = &prt_ptr->partition_array[i];
 				array_init(return_value);
-                                tmp = slurm_xstrdup(prt_data->nodes);
-				add_next_index_string(
-					return_value, tmp, 1);
+				tmp = slurm_xstrdup(prt_data->nodes);
+				add_next_index_string(return_value, tmp, 1);
 				y++;
 				break;
 			}
@@ -607,9 +628,10 @@ PHP_FUNCTION(slurm_get_node_names)
 	if (node_ptr->record_count > 0) {
 		array_init(return_value);
 		for (i = 0; i < node_ptr->record_count; i++) {
-                        tmp =
-                        slurm_xstrdup(node_ptr->node_array[i].name);
-			add_next_index_string(return_value, tmp, 1);
+			if (node_ptr->node_array[i].name != NULL) {
+	                        tmp = slurm_xstrdup(node_ptr->node_array[i].name);
+				add_next_index_string(return_value, tmp, 1);
+			}
 		}
 	}
 
@@ -850,6 +872,8 @@ PHP_FUNCTION(slurm_load_job_information)
 	job_info_msg_t *job_ptr;
 	zval *sub_arr = NULL;
 	char *tmp;
+	//char *tmp_d;
+	//char *tmp_d_k = "DEBUG";
 
 	err = slurm_load_jobs((time_t) NULL, &job_ptr, 0);
 	if (err) {
@@ -863,7 +887,9 @@ PHP_FUNCTION(slurm_load_job_information)
 		_parse_assoc_array(slurm_sprint_job_info(
 					   &job_ptr->job_array[i], 1),
 				   "= ", sub_arr);
+		//tmp_d = slurm_sprint_job_info(&job_ptr->job_array[i], 1);
 		tmp = slurm_xstrdup_printf("%u", job_ptr->job_array[i].job_id);
+		//_zend_add_valid_assoc_string(sub_arr, tmp_d_k, tmp_d);
 		add_assoc_zval(return_value, tmp, sub_arr);
 	}
 

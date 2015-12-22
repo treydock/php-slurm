@@ -1,5 +1,5 @@
 Name:           php-slurm
-Version:        1.0.2.3
+Version:        1.0.2.4
 Release:        1%{?dist}
 Summary:        PHP extension for SLURM
 
@@ -9,8 +9,8 @@ License:        GPLv2
 Source0:        php-slurm-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires: slurm-devel >= 2.2.0, php-devel, php-cli
-Requires:      slurm >= 2.2.0, php, httpd
+BuildRequires: slurm-devel >= 15.08.0, php-devel, php-cli
+Requires:      slurm >= 15.08.0, php, httpd
 
 %description
 PHP extension for SLURM.
@@ -57,6 +57,16 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Thu Jul 02 2015 Trey Dockendorf <treydock@tamu.edu> - 1.0.2.4-1
+Handle TRES when getting job information
+Add slurm_version_str function
+
+* Thu Jul 02 2015 Trey Dockendorf <treydock@tamu.edu> - 1.0.2.3-3
+Build against SLURM 15.08
+
+* Wed Apr 29 2015 Trey Dockendorf <treydock@tamu.edu> - 1.0.2.3-2
+Build against SLURM 14.11
+
 * Tue Apr 12 2011 Jimmy Tang <jtang@tchpc.tcd.ie> - 1.0-6
 Update example site to show functionality of module
 

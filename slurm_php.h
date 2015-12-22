@@ -148,6 +148,13 @@ PHP_FUNCTION(slurm_slurmd_status);
  */
 PHP_FUNCTION(slurm_version);
 
+/*
+ * slurm_version_str - Returns the slurm version number as the full string
+ *
+ * RET string value containing the slurm version.
+ */
+PHP_FUNCTION(slurm_version_str);
+
 
 /*****************************************************************************\
  *	SLURM PARTITION READ FUNCTIONS
